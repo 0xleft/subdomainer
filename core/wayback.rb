@@ -1,5 +1,6 @@
 require "json"
 require "net/http"
+require "uri"
 
 class Wayback
     def initialize(domain)
@@ -17,10 +18,13 @@ class Wayback
 
         json = JSON.parse(response)
         json.each do |result|
-            url = result[2]
+            url = result[2].strip()
             url = url.gsub("http://", "")
             url = url.gsub("https://", "")
             url = url.split("/")[0]
+            url = url.split("?")[0]
+            url = url.split(":")[0]
+            url = url.split("@")[-1]
 
             if url.include? @domain
                 @subdomains << url
