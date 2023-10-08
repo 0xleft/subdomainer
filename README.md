@@ -3,7 +3,11 @@
 ## Usage
 
 ```bash
+# run without tor
 $ ruby subdomain.rb example.com
+
+# run with tor
+$ ruby subdomain.rb example.com --tor
 ```
 
 ## License

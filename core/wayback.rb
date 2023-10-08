@@ -1,5 +1,6 @@
 require "json"
 require "net/http"
+require 'proxied_request'
 require "uri"
 
 class Wayback
@@ -8,17 +9,22 @@ class Wayback
         @subdomains = []
     end
 
-    def run
-        uri = URI("https://web.archive.org/cdx/search/cdx?url=*.#{@domain}/*&output=json&collapse=urlkey")
-        response = Net::HTTP.get(uri)
-        # if 403
+    def run(proxied)
+        if proxied
+            response = ProxiedRequest::HTTP.request("https://web.archive.org/cdx/search/cdx?url=*.#{@domain}/*&output=json&collapse=urlkey")
+            response = response.body
+        else
+            uri = URI("https://web.archive.org/cdx/search/cdx?url=*.#{@domain}/*&output=json&collapse=urlkey")
+            response = Net::HTTP.get(uri)
+        end
+
         if response.include? "AdministrativeAccessControlException"
             return []
         end
 
         json = JSON.parse(response)
         json.each do |result|
-            url = result[2].strip()
+            url = result[2].strip
             url = url.gsub("http://", "")
             url = url.gsub("https://", "")
             url = url.split("/")[0]
@@ -35,9 +41,9 @@ class Wayback
         return @subdomains
     end
 
-    def get_thread
+    def get_thread(proxied = false)
         thread = Thread.new do
-            result = self.run
+            result = self.run(proxied)
             Thread.current[:result] = result
         end
         return thread

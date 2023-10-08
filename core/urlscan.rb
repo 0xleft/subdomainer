@@ -7,9 +7,15 @@ class Urlscan
         @subdomains = []
     end
 
-    def run
-        uri = URI("https://urlscan.io/api/v1/search/?q=domain:#{@domain}")
-        response = Net::HTTP.get(uri)
+    def run(proxied)
+        if proxied
+            response = ProxiedRequest::HTTP.request("https://urlscan.io/api/v1/search/?q=domain:#{@domain}")
+            response = response.body
+        else
+            uri = URI("https://urlscan.io/api/v1/search/?q=domain:#{@domain}")
+            response = Net::HTTP.get(uri)
+        end
+
         json = JSON.parse(response)
         json["results"].each do |result|
             domain = result["page"]["domain"]
@@ -22,9 +28,9 @@ class Urlscan
         return @subdomains
     end
 
-    def get_thread
+    def get_thread(proxied = false)
         thread = Thread.new do
-            result = self.run
+            result = self.run(proxied)
             Thread.current[:result] = result
         end
         return thread

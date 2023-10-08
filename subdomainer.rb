@@ -11,10 +11,10 @@ class Subdomainer
 
     def run
         threads = []
-        threads << Urlscan.new(@domain).get_thread
-        threads << Crt.new(@domain).get_thread
-        threads << HackerTarget.new(@domain).get_thread
-        threads << Wayback.new(@domain).get_thread
+        threads << Urlscan.new(@domain).get_thread(ARGV[1] == "--tor")
+        threads << Crt.new(@domain).get_thread(ARGV[1] == "--tor")
+        threads << HackerTarget.new(@domain).get_thread(ARGV[1] == "--tor")
+        threads << Wayback.new(@domain).get_thread(ARGV[1] == "--tor")
 
         threads.each do |thread|
             thread.join

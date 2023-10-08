@@ -7,9 +7,15 @@ class Crt
         @subdomains = []
     end
 
-    def run
-        uri = URI("https://crt.sh/?q=#{@domain}&output=json")
-        response = Net::HTTP.get(uri)
+    def run(proxied)
+        if proxied
+            response = ProxiedRequest::HTTP.request("https://crt.sh/?q=#{@domain}&output=json")
+            response = response.body
+        else
+            uri = URI("https://crt.sh/?q=#{@domain}&output=json")
+            response = Net::HTTP.get(uri)
+        end
+
         json = JSON.parse(response)
         json.each do |result|
             name = result["name_value"].split("\n")
@@ -24,9 +30,9 @@ class Crt
         return @subdomains
     end
 
-    def get_thread
+    def get_thread(proxied = false)
         thread = Thread.new do
-            result = self.run
+            result = self.run(proxied)
             Thread.current[:result] = result
         end
         return thread
